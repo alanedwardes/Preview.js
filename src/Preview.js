@@ -80,6 +80,34 @@ PREVIEW.Vector3.prototype = {
 	set: function ( x, y, z ) {
 		this.x = x, this.y = y, this.z = z;
 		return this;
+	},
+	
+	add: function ( other ) {
+		this.x += other.x, this.y += other.y, this.z += other.z;
+		return this;
+	},
+	
+	multiplyScalar: function ( scalar ) {
+		this.x *= scalar, this.y *= scalar, this.z *= scalar;
+		return this;
+	},
+	
+	round: function ( places ) {
+		var factor = 10 * (places - 1);
+		
+		this.x = Math.round( this.x * factor ) / factor;
+		this.y = Math.round( this.y * factor ) / factor;
+		this.z = Math.round( this.z * factor ) / factor;
+		return this;
+	},
+	
+	clone: function () {
+		return new PREVIEW.Vector3( this.x, this.y, this.z );
+	},
+	
+	cloneTo: function ( other ) {
+		other.set( this.x, this.y, this.z );
+		return this;
 	}
 };
 
@@ -97,8 +125,7 @@ PREVIEW.Media.prototype = {
 	},
 	
 	create: function ( ) {
-		switch ( this.getMediaType( ) )
-		{
+		switch ( this.getMediaType( ) ) {
 			case PREVIEW.Image:
 				this.createImageDomElement( ); break;
 			case PREVIEW.Video:
@@ -168,52 +195,99 @@ PREVIEW.Stage.prototype = {
 		
 		var s = this.stage_element.style;
 		
-		s[Sprite3D.prototype._browserPrefix+"Perspective"] = "800" + (Sprite3D.prototype._browserPrefix=="Moz"?"px":"");
-		s[Sprite3D.prototype._browserPrefix+"PerspectiveOrigin"] = "center";
-		s[Sprite3D.prototype._browserPrefix+"TransformOrigin"] = "0 0";
-		s[Sprite3D.prototype._browserPrefix+"Transform"] = "translateZ(0px)";
+		s[ Sprite3D.prototype._browserPrefix + 'Perspective' ] = '800' + ( Sprite3D.prototype._browserPrefix == 'Moz' ? 'px' 	: '' );
+		s[ Sprite3D.prototype._browserPrefix + 'PerspectiveOrigin' ] = 'center';
+		s[ Sprite3D.prototype._browserPrefix + 'TransformOrigin' ] = '0 0';
+		s[ Sprite3D.prototype._browserPrefix + 'Transform' ] = 'translateZ(0px)';
+		s[ Sprite3D.prototype._browserPrefix + 'UserSelect' ] = 'none';
+		s[ 'overflow' ] = 'hidden';
 		
 		this.stage = new Sprite3D( this.stage_element );
 		this.stage.addChild( this.media );
-		
-		var self = this;
-		var mouse_pressed = PREVIEW.MouseNone;
-		
-		PREVIEW.Event.listen( window, 'keydown', function ( e ) {
-			if ( e.keyCode === PREVIEW.KeyEscape ) {
-				self.camera.reset( );
-			}
-			
-			console.log( 'keydown' );
-		} );
-		
-		PREVIEW.Event.listen( window, 'mousemove', function ( e ) {
-			switch ( mouse_pressed ) {
-				case PREVIEW.MouseMiddle:
-					self.camera.rotate( ( self.stage_element.offsetHeight / 2 - e.clientY ) * 0.01, ( self.stage_element.offsetWidth / 2 - e.clientX ) * 0.01, 0);
-					break;
-				case PREVIEW.MouseLeft:
-					self.camera.move( e.clientX, e.clientY );
-					break;
-			}
-		} );
-		PREVIEW.Event.listen( window, 'mousewheel', function ( e ) { self.camera.zoom(e.wheelDelta); } );
-		PREVIEW.Event.listen( window, 'DOMMouseScroll', function ( e ) { self.camera.zoom(-e.detail * 40.0); } );
-		
-		PREVIEW.Event.listen( window, 'mouseup', function ( e ) { mouse_pressed = PREVIEW.MouseNone; } );
-		PREVIEW.Event.listen( window, 'mousedown', function ( e ) { mouse_pressed = e.which; } );
 	},
 	
 	update: function ( ) {
-		this.camera.update( );
+		var camera_position = this.camera.getPosition( ).round( 3 );
+		var camera_rotation = this.camera.getRotation( ).round( 3 );
 		
 		this.media.setRegistrationPoint( - this.stage_element.offsetWidth / 2 + this.media_element.offsetWidth / 2, - this.stage_element.offsetHeight / 2 + this.media_element.offsetHeight / 2, 0);
 		
-		this.media.setPosition( this.camera.position.x.toFixed(2), this.camera.position.y.toFixed(2), this.camera.position.z.toFixed(2) );
-		this.media.setRotation( this.camera.rotation.x.toFixed(2), this.camera.rotation.y.toFixed(2), this.camera.rotation.z.toFixed(2) );
-		
+		this.media.setPosition( camera_position.x, camera_position.y, camera_position.z );
+		this.media.setRotation( camera_rotation.x, camera_rotation.y, camera_rotation.z );
 		this.media.update( );
-		this.stage.update( );
+	}
+};
+
+PREVIEW.BasicInputBehaviour = function ( camera ) {
+	this.set( camera );
+	this.listen( );
+};
+
+PREVIEW.BasicInputBehaviour.prototype = {
+	camera: undefined,
+	pressed_mouse_button: PREVIEW.MouseNone,
+	pressed_mouse_position: new PREVIEW.Vector3( ),
+	last_camera_position: new PREVIEW.Vector3( ),
+	
+	set: function ( camera ) {
+		this.camera = camera;
+	},
+	
+	listen: function ( ) {
+		var self = this;
+	
+		PREVIEW.Event.listen( window, 'keydown', function ( e ) {
+			self.keydown( e.which );
+		} );
+		
+		PREVIEW.Event.listen( window, 'mousemove', function ( e ) {
+			self.mousemove( e.clientX, e.clientY );
+		} );
+
+		PREVIEW.Event.listen( window, 'mousewheel', function ( e ) {
+			self.mousewheel( e.wheelDelta, e.clientX, e.clientY );
+		} );
+		
+		PREVIEW.Event.listen( window, 'mousedown', function ( e ) {
+			self.mousedown( e.which, e.clientX, e.clientY );
+		} );
+		
+		PREVIEW.Event.listen( window, 'mouseup', function ( e ) {
+			self.mouseup( e.which, e.clientX, e.clientY );
+		} );
+		
+		PREVIEW.Event.listen( window, 'DOMMouseScroll', function ( e ) {
+			self.mousewheel( -e.detail * 40.0, e.clientX, e.clientY );
+		} );
+	},
+	
+	keydown: function ( keyCode ) {
+		if ( keyCode === PREVIEW.KeyEscape ) {
+			this.camera.reset( );
+		}
+	},
+	
+	mousemove: function ( x, y ) {
+		switch ( this.pressed_mouse_button ) {
+			case PREVIEW.MouseMiddle:
+				return this.camera.rotate( ( innerHeight / 2 - y ) * 0.01, ( innerWidth / 2 - x ) * 0.01, 0 );
+			case PREVIEW.MouseLeft:
+				return this.camera.move( x - this.pressed_mouse_position.x + this.last_camera_position.x, y - this.pressed_mouse_position.y + this.last_camera_position.y );
+		}
+	},
+	
+	mousewheel: function ( delta, x, y ) {
+		this.camera.zoom( delta );
+	},
+	
+	mouseup: function ( button, x, y ) {
+		this.pressed_mouse_button = PREVIEW.MouseNone;
+	},
+	
+	mousedown: function ( button, x, y ) {
+		this.pressed_mouse_button = button;
+		this.pressed_mouse_position.set( x, y, 0 );
+		this.camera.position.cloneTo( this.last_camera_position );
 	}
 };
 
@@ -223,8 +297,7 @@ PREVIEW.Camera.prototype = {
 	rotation: new PREVIEW.Vector3( ),
 	
 	reset: function ( ) {
-		this.position.reset( );
-		this.rotation.reset( );
+		this.position.reset( ), this.rotation.reset( );
 	},
 	
 	zoom: function ( amount ) {
@@ -236,8 +309,27 @@ PREVIEW.Camera.prototype = {
 	},
 	
 	rotate: function ( x, y, z ) {
-		return this.rotation.set( x, y, z );
+		this.rotation.set( x, y, z );
 	},
+	
+	getPosition: function ( ) {
+		return this.position;
+	},
+	
+	getRotation: function ( ) {
+		return this.rotation;
+	},
+};
 
-	update: function ( ) { }
+PREVIEW.SmoothedCamera = function ( ) { };
+PREVIEW.SmoothedCamera.prototype = new PREVIEW.Camera();
+
+PREVIEW.SmoothedCamera.prototype.smoothedPosition = new PREVIEW.Vector3( );
+PREVIEW.SmoothedCamera.prototype.getPosition = function ( ) {
+	return this.smoothedPosition = this.smoothedPosition.multiplyScalar( .75 ).add( this.position.clone().multiplyScalar( .25 ) );
+};
+
+PREVIEW.SmoothedCamera.prototype.smoothedRotation = new PREVIEW.Vector3( );
+PREVIEW.SmoothedCamera.prototype.getRotation = function ( ) {
+	return this.smoothedRotation = this.smoothedRotation.multiplyScalar( .9 ).add( this.rotation.clone().multiplyScalar( .1 ) );
 };
