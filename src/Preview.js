@@ -196,7 +196,7 @@ PREVIEW.Stage.prototype = {
 		
 		var s = this.stage_element.style;
 		
-		s[ Sprite3D.prototype._browserPrefix + 'Perspective' ] = '800' + ( Sprite3D.prototype._browserPrefix == 'Moz' ? 'px' 	: '' );
+		s[ Sprite3D.prototype._browserPrefix + 'Perspective' ] = '800' + ( Sprite3D.prototype._browserPrefix == 'Moz' ? 'px' : '' );
 		s[ Sprite3D.prototype._browserPrefix + 'PerspectiveOrigin' ] = 'center';
 		s[ Sprite3D.prototype._browserPrefix + 'TransformOrigin' ] = '0 0';
 		s[ Sprite3D.prototype._browserPrefix + 'Transform' ] = 'translateZ(0px)';
@@ -271,7 +271,7 @@ PREVIEW.BasicInputBehaviour.prototype = {
 	mousemove: function ( x, y ) {
 		switch ( this.pressed_mouse_button ) {
 			case PREVIEW.MouseMiddle:
-				return this.camera.rotate( ( innerHeight / 2 - y ) * 0.01, ( innerWidth / 2 - x ) * 0.01, 0 );
+				return this.camera.rotate( ( innerHeight / 2 - y ) * 0.01, -( innerWidth / 2 - x ) * 0.01, 0 );
 			case PREVIEW.MouseLeft:
 				return this.camera.move( x - this.pressed_mouse_position.x + this.last_camera_position.x, y - this.pressed_mouse_position.y + this.last_camera_position.y );
 		}
@@ -327,10 +327,10 @@ PREVIEW.SmoothedCamera.prototype = new PREVIEW.Camera();
 
 PREVIEW.SmoothedCamera.prototype.smoothedPosition = new PREVIEW.Vector3( );
 PREVIEW.SmoothedCamera.prototype.getPosition = function ( ) {
-	return this.smoothedPosition = this.smoothedPosition.multiplyScalar( .75 ).add( this.position.clone().multiplyScalar( .25 ) );
+	return this.smoothedPosition = this.smoothedPosition.clone( ).multiplyScalar( .75 ).add( this.position.clone( ).multiplyScalar( .25 ) );
 };
 
 PREVIEW.SmoothedCamera.prototype.smoothedRotation = new PREVIEW.Vector3( );
 PREVIEW.SmoothedCamera.prototype.getRotation = function ( ) {
-	return this.smoothedRotation = this.smoothedRotation.multiplyScalar( .9 ).add( this.rotation.clone().multiplyScalar( .1 ) );
+	return this.smoothedRotation = this.smoothedRotation.clone( ).multiplyScalar( .9 ).add( this.rotation.clone( ).multiplyScalar( .1 ) );
 };
