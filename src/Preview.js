@@ -1,6 +1,5 @@
 /*
 Preview.js - A small JavaScript library allowing previewing of screenshots and other media.
-Copyright (C) 2007-2014 ShareX Developers
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
