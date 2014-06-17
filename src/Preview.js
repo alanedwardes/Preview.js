@@ -1,5 +1,8 @@
 /*
 Preview.js - A small JavaScript library allowing previewing of screenshots and other media.
+GitHub: http://github.com/alanedwardes/screenshot-preview
+
+Author: Alan Edwardes / alan@alanedwardes.com / http://alan.edward.es/
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -136,8 +139,6 @@ PREVIEW.Media.prototype = {
 		this.element.unselectable = true;
 		PREVIEW.Event.ignore( this.element, 'dragstart' );
 		PREVIEW.Event.ignore( this.element, 'selectstart' );
-		
-		this.element.id = 'preview ' + this.getFileExtension( );
 		
 		return this.element;
 	},
@@ -301,7 +302,7 @@ PREVIEW.Camera.prototype = {
 	},
 	
 	zoom: function ( amount ) {
-		this.position.z += amount;
+		this.position.z = Math.min(Math.max(this.position.z + amount, -1800), 720);
 	},
 	
 	move: function ( x, y ) {
