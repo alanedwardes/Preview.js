@@ -35,6 +35,12 @@ PREVIEW.MouseRight = 3;
 
 PREVIEW.KeyEscape = 27;
 
+window.requestAnimFrame = ( function( ) {
+	return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function( callback ) {
+		window.setTimeout( callback, 1000 / 60 );
+	};
+} )( );
+
 PREVIEW.Filter = {
 	htmlEncode: function ( html ) {
 		var span_node = document.createElement( 'span' );
@@ -327,7 +333,7 @@ PREVIEW.SmoothedCamera.prototype = new PREVIEW.Camera();
 
 PREVIEW.SmoothedCamera.prototype.smoothedPosition = new PREVIEW.Vector3( );
 PREVIEW.SmoothedCamera.prototype.getPosition = function ( ) {
-	return this.smoothedPosition = new PREVIEW.Vector3(this.position.x, this.position.y, this.smoothedPosition.z * .75 + this.position.z * .25);
+	return this.smoothedPosition = new PREVIEW.Vector3( this.position.x, this.position.y, this.smoothedPosition.z * .75 + this.position.z * .25 );
 };
 
 PREVIEW.SmoothedCamera.prototype.smoothedRotation = new PREVIEW.Vector3( );

@@ -3,7 +3,6 @@
 	<head>
 		<title>Preview</title>
 		<meta charset="UTF-8">
-		<script src="../src/rAF.js"></script>
 		<script src="../src/Sprite3D.js"></script>
 		<script src="../src/Preview.js"></script>
 		<script>
@@ -49,7 +48,7 @@
 				// Loop forever
 				( function( ) {
 					stage.update( );
-					requestAnimationFrame( arguments.callee );
+					requestAnimFrame( arguments.callee );
 				} )( );
 			}
 		</script>
