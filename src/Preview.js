@@ -327,7 +327,7 @@ PREVIEW.SmoothedCamera.prototype = new PREVIEW.Camera();
 
 PREVIEW.SmoothedCamera.prototype.smoothedPosition = new PREVIEW.Vector3( );
 PREVIEW.SmoothedCamera.prototype.getPosition = function ( ) {
-	return this.smoothedPosition = this.smoothedPosition.clone( ).multiplyScalar( .75 ).add( this.position.clone( ).multiplyScalar( .25 ) );
+	return this.smoothedPosition = new PREVIEW.Vector3(this.position.x, this.position.y, this.smoothedPosition.z * .75 + this.position.z * .25);
 };
 
 PREVIEW.SmoothedCamera.prototype.smoothedRotation = new PREVIEW.Vector3( );
