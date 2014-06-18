@@ -259,7 +259,7 @@ PREVIEW.Stage.prototype = {
 	
 	update: function ( ) {
 		var center = new PREVIEW.Vector3( - this.stage_element.offsetWidth / 2 + this.media_element.offsetWidth / 2, - this.stage_element.offsetHeight / 2 + this.media_element.offsetHeight / 2, 0 );
-		var camera_position = this.camera.getPosition( ).sub( center );
+		var camera_position = this.camera.getPosition( ).clone( ).sub( center );
 		var camera_rotation = this.camera.getRotation( );
 		
 		PREVIEW.Transform3D.transform( this.media_element, camera_position, camera_rotation, new PREVIEW.Vector3( 1, 1, 1 ) );
