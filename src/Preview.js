@@ -41,6 +41,55 @@ window.requestAnimFrame = ( function( ) {
 	};
 } )( );
 
+PREVIEW.Transform3D = {
+	vendorPrefix: '',
+
+	initCanvas: function ( element ) {
+		var css = { };
+		
+		this.vendorPrefix = this.getVendorPrefix( 'Perspective' );
+		
+		css[ this.vendorPrefix + 'Perspective' ] = '800px';
+		css[ this.vendorPrefix + 'UserSelect' ] = 'none';
+		css[ 'overflow' ] = 'hidden';
+		css[ 'position' ] = 'absolute';
+		
+		this.applyCSS( element, css );
+	},
+	
+	transform: function( element, position, rotation, scale ) {
+		var p = position.round( 3 ), r = rotation.round( 3 ),
+			s = scale.round( 3 ), css = { };
+		
+		css[ this.vendorPrefix + 'Transform' ] = [
+			'translate3d(' + p.x + 'px, ' + p.y + 'px, ' + p.z + 'px)',
+			'rotateX(' + r.x + 'deg)',
+			'rotateY(' + r.y + 'deg)',
+			'rotateZ(' + r.z + 'deg)',
+			'scale3d(' + s.x + ', ' + s.y + ', ' + s.z + ')'
+		].join(' ');
+		
+		this.applyCSS( element, css );
+	},
+	
+	applyCSS: function( element, css ) {
+		for ( var prop in css ) {
+			element.style[ prop ] = css[ prop ];
+		}
+	},
+	
+	getVendorPrefix: function ( property ) {
+		var testElement = document.createElement( 'div' ),
+			prefix = [ '', 'Moz', 'webkit', 'o', 'ms' ];
+		
+		for ( var i = 0; i < prefix.length; i++ ) {
+			if ( prefix[ i ] + property in testElement.style ) {
+				return prefix[ i ];
+			}
+		}
+	}
+};
+
 PREVIEW.Filter = {
 	htmlEncode: function ( html ) {
 		var span_node = document.createElement( 'span' );
@@ -93,6 +142,11 @@ PREVIEW.Vector3.prototype = {
 	
 	add: function ( other ) {
 		this.x += other.x, this.y += other.y, this.z += other.z;
+		return this;
+	},
+	
+	sub: function ( other ) {
+		this.x -= other.x, this.y -= other.y, this.z -= other.z;
 		return this;
 	},
 	
@@ -198,30 +252,17 @@ PREVIEW.Stage.prototype = {
 	},
 	
 	create: function ( ) {
-		this.media = new Sprite3D( this.media_element );
+		PREVIEW.Transform3D.initCanvas( this.stage_element );
 		
-		var s = this.stage_element.style;
-		
-		s[ Sprite3D.prototype._browserPrefix + 'Perspective' ] = '800' + ( Sprite3D.prototype._browserPrefix == 'Moz' ? 'px' : '' );
-		s[ Sprite3D.prototype._browserPrefix + 'PerspectiveOrigin' ] = 'center';
-		s[ Sprite3D.prototype._browserPrefix + 'TransformOrigin' ] = '0 0';
-		s[ Sprite3D.prototype._browserPrefix + 'Transform' ] = 'translateZ(0px)';
-		s[ Sprite3D.prototype._browserPrefix + 'UserSelect' ] = 'none';
-		s[ 'overflow' ] = 'hidden';
-		
-		this.stage = new Sprite3D( this.stage_element );
-		this.stage.addChild( this.media );
+		this.stage_element.appendChild( this.media_element );
 	},
 	
 	update: function ( ) {
-		var camera_position = this.camera.getPosition( ).round( 3 );
-		var camera_rotation = this.camera.getRotation( ).round( 3 );
+		var center = new PREVIEW.Vector3( - this.stage_element.offsetWidth / 2 + this.media_element.offsetWidth / 2, - this.stage_element.offsetHeight / 2 + this.media_element.offsetHeight / 2, 0 );
+		var camera_position = this.camera.getPosition( ).sub( center );
+		var camera_rotation = this.camera.getRotation( );
 		
-		this.media.setRegistrationPoint( - this.stage_element.offsetWidth / 2 + this.media_element.offsetWidth / 2, - this.stage_element.offsetHeight / 2 + this.media_element.offsetHeight / 2, 0);
-		
-		this.media.setPosition( camera_position.x, camera_position.y, camera_position.z );
-		this.media.setRotation( camera_rotation.x, camera_rotation.y, camera_rotation.z );
-		this.media.update( );
+		PREVIEW.Transform3D.transform( this.media_element, camera_position, camera_rotation, new PREVIEW.Vector3( 1, 1, 1 ) );
 	}
 };
 
@@ -277,7 +318,7 @@ PREVIEW.BasicInputBehaviour.prototype = {
 	mousemove: function ( x, y ) {
 		switch ( this.pressed_mouse_button ) {
 			case PREVIEW.MouseMiddle:
-				return this.camera.rotate( ( innerHeight / 2 - y ) * 0.01, -( innerWidth / 2 - x ) * 0.01, 0 );
+				return this.camera.rotate( ( innerHeight / 2 - y ) * 0.02, - ( innerWidth / 2 - x ) * 0.02, 0 );
 			case PREVIEW.MouseLeft:
 				return this.camera.move( x - this.pressed_mouse_position.x + this.last_camera_position.x, y - this.pressed_mouse_position.y + this.last_camera_position.y );
 		}
