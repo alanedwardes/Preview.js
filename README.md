@@ -8,6 +8,8 @@ Previewer for sharing images and videos on the web. Allows zooming, rotating and
 Example
 -------
 
+Simple full-screen image preview.
+
 ```html
 <!doctype html>
 <html>
@@ -51,3 +53,5 @@ Example
 	</body>
 </html>
 ```
+
+For more example code, see the <a href="examples/">examples</a> folder.
