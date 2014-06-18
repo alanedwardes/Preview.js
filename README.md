@@ -23,7 +23,9 @@ Example
 				// Drag to move, scroll wheel to zoom, middle click drag to rotate, esc to reset
 				var input = new PREVIEW.BasicInputBehaviour( camera );
 				
-				var stage = new PREVIEW.Stage( document.getElementById( 'stage' ), media.create( ), camera );
+				var stage_element = document.getElementById( 'stage' );
+				
+				var stage = new PREVIEW.Stage( stage_element, media.create( ), camera );
 				stage.create( );
 				
 				( function( ) {
