@@ -374,10 +374,20 @@ PREVIEW.SmoothedCamera.prototype = new PREVIEW.Camera();
 
 PREVIEW.SmoothedCamera.prototype.smoothedPosition = new PREVIEW.Vector3( );
 PREVIEW.SmoothedCamera.prototype.getPosition = function ( ) {
-	return this.smoothedPosition = new PREVIEW.Vector3( this.position.x, this.position.y, this.smoothedPosition.z * .75 + this.position.z * .25 );
+	this.smoothedPosition = new PREVIEW.Vector3( this.position.x, this.position.y, this.smoothedPosition.z * .75 + this.position.z * .25 );
+	return this.clampToZero( this.smoothedPosition );
 };
 
 PREVIEW.SmoothedCamera.prototype.smoothedRotation = new PREVIEW.Vector3( );
 PREVIEW.SmoothedCamera.prototype.getRotation = function ( ) {
-	return this.smoothedRotation = this.smoothedRotation.clone( ).multiplyScalar( .9 ).add( this.rotation.clone( ).multiplyScalar( .1 ) );
+	this.smoothedRotation = this.smoothedRotation.clone( ).multiplyScalar( .9 ).add( this.rotation.clone( ).multiplyScalar( .1 ) );
+	return this.clampToZero( this.smoothedRotation );
+};
+
+PREVIEW.SmoothedCamera.prototype.clampToZero = function ( vector ) {
+	var factor = .25;
+	vector.x = vector.x > -factor && vector.x < factor ? 0 : vector.x;
+	vector.y = vector.y > -factor && vector.y < factor ? 0 : vector.y;
+	vector.z = vector.z > -factor && vector.z < factor ? 0 : vector.z;
+	return vector;
 };
