@@ -24,9 +24,10 @@ Optionally you can also view the license at <http://www.gnu.org/licenses/>.
 
 var PREVIEW = {};
 
+PREVIEW.Other = -1;
 PREVIEW.Image = 0;
 PREVIEW.Video = 1;
-PREVIEW.Other = 2;
+PREVIEW.Audio = 2;
 
 PREVIEW.MouseNone = 0;
 PREVIEW.MouseLeft = 1;
@@ -87,16 +88,6 @@ PREVIEW.Transform3D = {
 				return prefix[ i ];
 			}
 		}
-	}
-};
-
-PREVIEW.Filter = {
-	htmlEncode: function ( html ) {
-		var span_node = document.createElement( 'span' );
-		
-		span_node.appendChild( document.createTextNode( html ) );
-		
-		return span_node.innerHTML;
 	}
 };
 
@@ -183,7 +174,7 @@ PREVIEW.Media.prototype = {
 	element: undefined,
 	
 	set: function ( file ) {
-		this.file = PREVIEW.Filter.htmlEncode( file );
+		this.file = file;
 		return this;
 	},
 	
@@ -193,6 +184,8 @@ PREVIEW.Media.prototype = {
 				this.createImageDomElement( ); break;
 			case PREVIEW.Video:
 				this.createVideoDomElement( ); break;
+			case PREVIEW.Audio:
+				this.createAudioDomElement( ); break;
 		};
 		
 		this.element.draggable = false;
@@ -216,8 +209,20 @@ PREVIEW.Media.prototype = {
 		this.element.controls = true;
 	},
 	
+	createAudioDomElement: function ( ) {
+		this.element = document.createElement( 'audio' );
+		this.element.src = this.file;
+		this.element.autoplay = true;
+		this.element.loop = true;
+		this.element.controls = true;
+	},
+	
+	getFileName: function ( ) {
+		return this.file.split( '/' ).slice( -1 )[ 0 ].split( '?' )[ 0 ].split( '#' )[ 0 ];
+	},
+	
 	getFileExtension: function ( ) {
-		return this.file.split( '.' ).slice( -1 )[ 0 ].toLowerCase( );
+		return this.getFileName( ).split( '.' ).slice( -1 )[ 0 ].toLowerCase( );
 	},
 	
 	getMediaType: function ( ) {
@@ -226,6 +231,8 @@ PREVIEW.Media.prototype = {
 				return PREVIEW.Image;
 			case 'webm': case 'mp4': case 'ogv':
 				return PREVIEW.Video;
+			case 'wav': case 'mp3': case 'ogg':
+				return PREVIEW.Audio;
 			default:
 				return PREVIEW.Other;
 		};
@@ -289,6 +296,10 @@ PREVIEW.BasicInputBehaviour.prototype = {
 		} );
 		
 		PREVIEW.Event.listen( window, 'mousemove', function ( e ) {
+			// Ignore the event if we are currently seeking
+			if ( e.target && e.target.seeking)
+				return;
+			
 			self.mousemove( e.clientX, e.clientY );
 		} );
 
@@ -349,7 +360,7 @@ PREVIEW.Camera.prototype = {
 	},
 	
 	zoom: function ( amount ) {
-		this.position.z = Math.min(Math.max(this.position.z + amount, -1800), 720);
+		this.position.z = Math.min( Math.max( this.position.z + amount, -1800 ), 720 );
 	},
 	
 	move: function ( x, y ) {
